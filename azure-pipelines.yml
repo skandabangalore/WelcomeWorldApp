@@ -5,11 +5,12 @@ trigger:
 
 stages:
 - stage: 'Build'
+  
   displayName: 'Build the Web Application'
   jobs:
   - job: 'Build'
     displayName: 'Build Job'
-  
+    condition: false
     pool:
       name: 'MyAgentPool'
     variables:
@@ -70,4 +71,4 @@ stages:
             azureSubscription: 'Resource Manager - WelcomeWorld App'
             appName: '$(WebAppName)'
             appType: webAppLinux
-            package: '$(Pipeline.Workspace)/drop/$(buildConfiguration)/*.zip'
+            package: '$(Build.ArtifactStagingDirectory)/drop/*.zip'
