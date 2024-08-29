@@ -71,4 +71,4 @@ stages:
             azureSubscription: 'Resource Manager - WelcomeWorld App'
             appName: '$(WebAppName)'
             appType: webAppLinux
-            package: '$(Build.ArtifactStagingDirectory)/drop/*.zip'
+            package: '$(Build.ArtifactStagingDirectory)/*.zip'
