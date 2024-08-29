@@ -1,45 +1,72 @@
-# ASP.NET
-# Build and test ASP.NET projects.
-# Add steps that publish symbols, save build artifacts, deploy, and more:
-# https://docs.microsoft.com/azure/devops/pipelines/apps/aspnet/build-aspnet-4
-
 trigger:
 - '*'
 
-pool:
-  name: 'MyAgentPool'
 
-variables:
-  buildConfiguration: 'Release'
 
-steps:
-- task: UseDotNet@2
-  displayName: 'Use .NET SDK 8.x'
-  inputs:
-    PackageType: sdk
-    version: '8.x'
-    includePreviewVersions: true
-- task: DotNetCoreCLI@2
-  displayName: 'Build Step'
-  inputs:
-    command: 'build'
-    projects: '**/*.csproj'
-    arguments: '--configuration $(buildConfiguration)'
-
-- task: DotNetCoreCLI@2
-  displayName: 'Restore project dependencies'
-  inputs:
-    command: 'restore'
-    projects: '**/*.csproj'
-- task: DotNetCoreCLI@2
-  inputs:
-    command: 'publish'
-    projects: '**/*.csproj'
-    arguments: '--configuration $(buildConfiguration) --output $(Build.ArtifactStagingDirectory)'
-    zipAfterPublish: true
+stages:
+- stage: 'Build'
+  displayName: 'Build the Web Application'
+  jobs:
+  - job: 'Build'
+    displayName: 'Build Job'
   
-- task: PublishBuildArtifacts@1
-  displayName: 'Build Artifact Step'
-  inputs:
-    PathtoPublish: '$(Build.ArtifactStagingDirectory)'
-    ArtifactName: 'WelcomeWorldAppDrop'
+    pool:
+      name: 'MyAgentPool'
+    variables:
+      buildConfiguration: 'Release'
+    steps:
+    - task: UseDotNet@2
+      displayName: 'Use .NET SDK 8.x'
+      inputs:
+        PackageType: sdk
+        version: '8.x'
+        includePreviewVersions: true
+    - task: DotNetCoreCLI@2
+      displayName: 'Build Step'
+      inputs:
+        command: 'build'
+        projects: '**/*.csproj'
+        arguments: '--configuration $(buildConfiguration)'
+
+    - task: DotNetCoreCLI@2
+      displayName: 'Restore project dependencies'
+      inputs:
+        command: 'restore'
+        projects: '**/*.csproj'
+    - task: DotNetCoreCLI@2
+      inputs:
+        command: 'publish'
+        projects: '**/*.csproj'
+        arguments: '--configuration $(buildConfiguration) --output $(Build.ArtifactStagingDirectory)'
+        zipAfterPublish: true
+  
+    - task: PublishBuildArtifacts@1
+      displayName: 'Build Artifact Step'
+      inputs:
+        PathtoPublish: '$(Build.ArtifactStagingDirectory)'
+        ArtifactName: 'WelcomeWorldAppDrop'
+
+- stage: 'Deploy'
+  displayName: 'Deploy the Web Application'
+  dependsOn: Build
+  jobs:
+  - deployment: 'Deploy'
+    displayName: 'Deployment Job'
+    pool:
+      name: 'MyAgentPool'
+    environment: development
+    variables:
+      group: Release
+    strategy:
+     runOnce:
+       
+      deploy:
+        steps:
+        - download: current
+          artifact: WelcomeWorldAppDrop
+        - task: AzureWebApp@1
+          displayName: 'Use .NET SDK 8.x'
+          inputs:
+            azureSubscription: 'Resource Manager - WelcomeWorld App'
+            appName: '$(WebAppName)'
+            package: '$(Pipeline.Workspace)/drop/$(buildConfiguration)/*.zip'
