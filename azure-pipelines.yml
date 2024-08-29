@@ -56,7 +56,7 @@ stages:
       name: 'MyAgentPool'
     environment: development
     variables:
-      group: Release
+    -  group: Release
     strategy:
      runOnce:
        
@@ -65,7 +65,7 @@ stages:
         - download: current
           artifact: WelcomeWorldAppDrop
         - task: AzureWebApp@1
-          displayName: 'Use .NET SDK 8.x'
+          displayName: 'Azure App Service Deploy: website'
           inputs:
             azureSubscription: 'Resource Manager - WelcomeWorld App'
             appName: '$(WebAppName)'
