@@ -47,7 +47,7 @@ steps:
   displayName: 'Azure App Service Deploy website'
   inputs:
     azureSubscription: 'Resource Manager - WelcomeWorld App'
-    appName: '$(WebAppName)'
+    appName: 'WelcomeWorldApp2908'
     appType: webAppLinux
     package: '$(Build.ArtifactStagingDirectory)/*.zip'
         
