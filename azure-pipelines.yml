@@ -66,11 +66,13 @@ stages:
         steps:
       #  - download: current
       #    artifact: WelcomeWorldAppDrop
+        - script: echo '$(Build.ArtifactStagingDirectory)/drop/**.zip'
+
         - task: AzureWebApp@1
           displayName: 'Azure App Service Deploy website'
           inputs:
             azureSubscription: 'Resource Manager - WelcomeWorld App'
             appName: '$(WebAppName)'
             appType: webAppLinux
-            package: '$(Build.ArtifactStagingDirectory)/*.zip'
-        - script: echo '$(Build.ArtifactStagingDirectory)/*.zip'
+            package: '$(Build.ArtifactStagingDirectory)/drop/**.zip'
+        
