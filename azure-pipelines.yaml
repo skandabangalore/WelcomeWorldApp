@@ -1,0 +1,57 @@
+trigger:
+- '*'
+
+jobs:
+- job: 'Build and deploy'
+  displayName: 'Build and deploy Job'
+  #  condition: false
+  pool:
+    name: 'MyAgentPool'
+  variables:
+    buildConfiguration: 'Release'
+    group: 'Release'
+
+  steps:
+  - task: UseDotNet@2
+    displayName: 'Use .NET SDK 8.x'
+    inputs:
+      PackageType: sdk
+      version: '8.x'
+      includePreviewVersions: true
+
+  - task: DotNetCoreCLI@2
+    displayName: 'Build Step'
+    inputs:
+      command: 'build'
+      projects: '**/*.csproj'
+      arguments: '--configuration $(buildConfiguration)'
+
+  - task: DotNetCoreCLI@2
+    displayName: 'Restore project dependencies'
+    inputs:
+      command: 'restore'
+      projects: '**/*.csproj'
+
+  - task: DotNetCoreCLI@2
+    inputs:
+      command: 'publish step'
+      projects: '**/*.csproj'
+      arguments: '--configuration $(buildConfiguration) --output $(Build.ArtifactStagingDirectory)'
+      zipAfterPublish: true
+  
+  - task: PublishBuildArtifacts@1
+    displayName: 'Publish Artifact Step'
+    inputs:
+      PathtoPublish: '$(Build.ArtifactStagingDirectory)'
+      ArtifactName: 'WelcomeWorldAppDrop'
+
+  - script: echo '$(Build.ArtifactStagingDirectory)/**/*.zip'
+
+  - task: AzureWebApp@1
+    displayName: 'Azure App Service Deploy website'
+    inputs:
+      azureSubscription: 'Resource Manager - WelcomeWorld App'
+      appName: '$(WebAppName)'
+      appType: webAppLinux
+      package: '$(Build.ArtifactStagingDirectory)/*.zip'
+        
